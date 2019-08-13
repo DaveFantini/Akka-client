@@ -1,28 +1,330 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
-  </div>
+  <v-app>
+    <main>
+
+      <div>
+        <template>
+          <v-tabs
+            v-model="tab"
+            color="blue"
+            dark
+            grow
+          >
+            <v-tabs-slider color="white"></v-tabs-slider>
+
+            <v-tab
+            :key="Streaming">
+              Streaming mode            
+            </v-tab>
+
+            <v-tab
+            :key="Batch">
+              Batch mode
+            </v-tab>
+
+            <v-tab
+            :key="Status">
+              Status            
+            </v-tab>
+
+            <v-tab-item
+              :key="Streaming">
+              <v-container>
+                <v-layout row>
+                  <v-flex xs1>
+                    <v-card></v-card>
+                  </v-flex>
+                  
+                  <v-flex xs10>
+                    <v-card>
+                      <v-card-title>
+                        <span>TITLE STREAMING</span><br>
+                      </v-card-title>
+                      <v-layout row>
+                        <v-flex xs4>
+                             <v-btn color="info" @click="openWS">Connect</v-btn>
+                        </v-flex>
+                        <v-flex xs5>
+                          <div>
+                            <v-alert
+                              v-model="connectedAlert"
+                              dismissible
+                              type="success"
+                              icon="check_circle"
+                              outline
+                            >
+                            Connected succesfully
+                            </v-alert>
+                            <v-alert
+                              v-model="closedAlert"
+                              dismissible
+                              type="warning"
+                            >
+                              Connection closed
+                            </v-alert>
+                          </div>
+                        </v-flex>
+                      </v-layout>
+                     
+                    
+                      
+                      <form class="px-4 pb-4">
+                        <v-text-field
+                          v-model="MessageID"
+                          :error-messages="nameErrors"
+                          label="Message ID"
+                          required
+                          
+                        ></v-text-field>
+                        <v-text-field
+                          v-model="value"
+                          :error-messages="emailErrors"
+                          label="Message value"
+                          required
+                        ></v-text-field>
+                        <v-btn  color="success" @click="sendMessage">submit</v-btn>
+                        <v-btn  color="warning" @click="clear">clear</v-btn>
+                          </form>
+                      </v-card>
+                    </v-flex>
+                  
+                  <v-flex xs1>
+                    <v-card></v-card>
+                  </v-flex>
+                </v-layout>
+                <v-layout row>
+                  <v-flex xs1>
+                    <v-card></v-card>
+                  </v-flex>
+
+                  <v-flex xs10>
+                   <v-card>   
+                     <pre>{{ json_output | pretty}}</pre>
+                     
+                   </v-card>
+                  </v-flex>
+
+                  <v-flex xs1>
+                    <v-card></v-card>
+                  </v-flex>
+                </v-layout>
+              </v-container>
+            </v-tab-item>
+
+            <v-tab-item
+              :key="Batch">
+              
+              <v-container>
+                <v-layout row>
+                  <v-flex xs1>
+                    <v-card></v-card>
+                  </v-flex>
+                  
+                  <v-flex xs10>
+                    <v-card>
+                      <v-card-title>
+                        <span>TITLE BATCH</span><br>
+                      </v-card-title>
+                      
+                      <form class="px-4 pb-4">
+                        <v-text-field
+                          v-model="name"
+                          :error-messages="nameErrors"
+                          label="Message ID"
+                          required
+                      
+                        ></v-text-field>
+                        <v-text-field
+                          v-model="email"
+                          :error-messages="emailErrors"
+                          label="Message value"
+                          required
+                     
+                        ></v-text-field>
+                        <v-btn color="success" @click="submit">submit</v-btn>
+                        <v-btn color="warning" @click="clear">clear</v-btn>
+                          </form>
+                      </v-card>
+                    </v-flex>
+                  <v-flex xs1>
+                    <v-card></v-card>
+                  </v-flex>
+                </v-layout>
+            </v-container>
+          </v-tab-item>
+
+          <v-tab-item
+          :key="Status">
+            <v-container>
+              <v-layout row>
+                <v-flex xs1>
+                  <v-card></v-card>
+                </v-flex>
+                
+                <v-flex xs10>
+                  <v-card>
+                    <v-card-title>
+                      <span>STATUS</span><br>
+                    </v-card-title>
+                    
+                    <form class="px-4 pb-4" ref="form">
+                       <v-select
+                        v-model="MessageIDstatus"
+                        :items="processors"
+                        :rules="[v => !!v || 'Item is required']"
+                        label="Processor"
+                        required
+                      ></v-select>
+                      
+                       <v-radio-group v-model="radioGroup" required>
+                        <v-radio
+                          v-for="n in this.API_status"
+                          :key="n.name"
+                          :label="`${n.name}`"
+                          :value="n.value"
+                        ></v-radio>
+                        
+                      </v-radio-group>
+            
+                      <v-btn color="success" @click="getStatus">submit</v-btn>
+                      <v-btn color="warning" @click="reset">reset</v-btn>
+                    </form>
+                  </v-card>
+                </v-flex>
+                <v-flex xs1>
+                  <v-card></v-card>
+                </v-flex>
+                </v-layout>
+                <v-layout row>
+                  <v-flex xs1>
+                    <v-card></v-card>
+                  </v-flex>
+
+                  <v-flex xs10>
+                   <v-card>   
+                     <pre>{{ status_output | pretty}}</pre>
+                     
+                   </v-card>
+                  </v-flex>
+
+                  <v-flex xs1>
+                    <v-card></v-card>
+                  </v-flex>
+                </v-layout>
+            </v-container>
+          </v-tab-item>
+          </v-tabs>
+        </template>
+      </div>
+    </main>
+  </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import axios from "axios"
+import qs from "qs"
+axios.defaults.headers.post['Content-Type'] ='application/x-www-form-urlencoded';
 
 export default {
-  name: 'app',
+  name: 'App',
   components: {
-    HelloWorld
-  }
-}
-</script>
+  },
+  data: () => ({
+    processors:[
+      "Map1",
+      "Filter1",
+      "Merge1",
+      "Split1"
+    ],
+    API_status : [{name : "Global Status", value:""}, {name : "Failure", value:"/failures"},{name : "Lost", value:"/messageLost"}, {name : "Processed", value:"/messageProcessed"}],
+    radioGroup : "Global Status",
+    S_output: [],
+    json_output : "{}",
+    status_output: "{}",
 
-<style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
+  }),
+
+  methods:{
+      concatStrings(s1, s2) {
+        return s1.concat(s2);
+      },
+
+      sendMessage(){
+        var strID = this.MessageID
+        var mess = this.value
+        const data = {'ID': strID, 'mess': mess}
+        const Url = "http://127.0.0.1:4567/engine/startStream"
+
+        // const options = {
+        //   method: 'POST',
+        //   headers : { 'content-type': 'application/x-www-form-urlencoded' },
+        //   data: qs.stringify(data),
+        //   Url,
+        // }
+        // axios(options)
+        axios.get(Url,{params : {"key":strID,"value":mess}} )
+        .then(response => {
+          //this.S_output += response.data        
+          })
+          
+      },
+      getStatus(){
+        var processor = this.MessageIDstatus.toString()
+        // default value of checkbox is undefined 
+        // var failure = (this.Failurecheckbox == undefined) ? false : this.Failurecheckbox
+        // var messLost = (this.Lostcheckbox == undefined) ? false : this.Lostcheckbox
+        // var messProc = (this.Processedcheckbox == undefined) ? false : this.Processedcheckbox 
+        var Url = "http://127.0.0.1:4567/engine/status/" + processor + this.radioGroup
+      
+        axios.get(Url)
+        .then(response => {
+          this.status_output = JSON.stringify(response.data)
+        })
+        .catch(function (error) {
+        // handle error
+        this.status_output = JSON.stringify("{e : error.response.data}")
+        })
+      },
+
+      clear(){
+
+      },
+      submit(){
+
+      },
+      openWS(){
+        
+        this.$options.sockets.onmessage = (response) => {
+          this.S_output.push(JSON.parse(response.data))
+          this.json_output = JSON.stringify(this.S_output)
+
+        }
+
+        this.$options.sockets.onclose = () => {
+          this.connectedAlert = false
+          this.closedAlert = true
+        }
+        this.$connect()
+          this.connectedAlert = true
+        }
+  },
+   filters: {
+    pretty: function(value) {
+      return JSON.stringify(JSON.parse(value), null, 2);
+    }
+    
+  },
+  validate () {
+      if (this.$refs.form.validate()) {
+          this.snackbar = true
+        }
+      },
+      reset () {
+        this.$refs.form.reset()
+      },
+      resetValidation () {
+        this.$refs.form.resetValidation()
+      }
+  }
+
+</script>
