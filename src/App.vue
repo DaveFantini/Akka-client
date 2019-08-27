@@ -47,7 +47,7 @@
                         <v-flex xs5>
                           <div>
                             <v-alert
-                              v-model="connectedAlert"
+                              :value="connectedAlert"
                               dismissible
                               type="success"
                               icon="check_circle"
@@ -222,8 +222,6 @@
 
 <script>
 import axios from "axios"
-import qs from "qs"
-axios.defaults.headers.post['Content-Type'] ='application/x-www-form-urlencoded';
 
 export default {
   name: 'App',
@@ -241,6 +239,7 @@ export default {
     S_output: [],
     json_output : "{}",
     status_output: "{}",
+    connectedAlert: false
 
   }),
 
@@ -252,20 +251,13 @@ export default {
       sendMessage(){
         var strID = this.MessageID
         var mess = this.value
-        const data = {'ID': strID, 'mess': mess}
         const Url = "http://127.0.0.1:4567/engine/startStream"
 
-        // const options = {
-        //   method: 'POST',
-        //   headers : { 'content-type': 'application/x-www-form-urlencoded' },
-        //   data: qs.stringify(data),
-        //   Url,
-        // }
-        // axios(options)
-        axios.get(Url,{params : {"key":strID,"value":mess}} )
-        .then(response => {
-          //this.S_output += response.data        
+        axios.post(Url,{key: strID, value: mess})
+          .then(response => {
+              //
           })
+    
           
       },
       getStatus(){
@@ -293,7 +285,6 @@ export default {
 
       },
       openWS(){
-        
         this.$options.sockets.onmessage = (response) => {
           this.S_output.push(JSON.parse(response.data))
           this.json_output = JSON.stringify(this.S_output)
