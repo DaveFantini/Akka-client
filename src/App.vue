@@ -18,11 +18,6 @@
             </v-tab>
 
             <v-tab
-            :key="Batch">
-              Batch mode
-            </v-tab>
-
-            <v-tab
             :key="Status">
               Status            
             </v-tab>
@@ -38,13 +33,20 @@
                   <v-flex xs10>
                     <v-card>
                       <v-card-title>
-                        <span>TITLE STREAMING</span><br>
+                        <span class="font-weight-black px-2 pb-1">AKKA PROCESSING ENGINE</span><br>
                       </v-card-title>
                       <v-layout row>
-                        <v-flex xs4>
+                        
+                        <v-flex  class="px-3" xs4>
                              <v-btn color="info" @click="openWS">Connect</v-btn>
                         </v-flex>
-                        <v-flex xs5>
+
+                        <v-flex   xs5>
+                           <v-switch
+                              v-model="switch1"
+                              :label = "`${switchbox.toString()}`"
+                              class="font-weight-black"                            >
+                          </v-switch>
                           <div>
                             <v-alert
                               :value="connectedAlert"
@@ -65,9 +67,6 @@
                           </div>
                         </v-flex>
                       </v-layout>
-                     
-                    
-                      
                       <form class="px-4 pb-4">
                         <v-text-field
                           v-model="MessageID"
@@ -89,7 +88,8 @@
                     </v-flex>
                   
                   <v-flex xs1>
-                    <v-card></v-card>
+                    <v-card>
+                    </v-card>
                   </v-flex>
                 </v-layout>
                 <v-layout row>
@@ -111,48 +111,7 @@
               </v-container>
             </v-tab-item>
 
-            <v-tab-item
-              :key="Batch">
-              
-              <v-container>
-                <v-layout row>
-                  <v-flex xs1>
-                    <v-card></v-card>
-                  </v-flex>
-                  
-                  <v-flex xs10>
-                    <v-card>
-                      <v-card-title>
-                        <span>TITLE BATCH</span><br>
-                      </v-card-title>
-                      
-                      <form class="px-4 pb-4">
-                        <v-text-field
-                          v-model="name"
-                          :error-messages="nameErrors"
-                          label="Message ID"
-                          required
-                      
-                        ></v-text-field>
-                        <v-text-field
-                          v-model="email"
-                          :error-messages="emailErrors"
-                          label="Message value"
-                          required
-                     
-                        ></v-text-field>
-                        <v-btn color="success" @click="submit">submit</v-btn>
-                        <v-btn color="warning" @click="clear">clear</v-btn>
-                          </form>
-                      </v-card>
-                    </v-flex>
-                  <v-flex xs1>
-                    <v-card></v-card>
-                  </v-flex>
-                </v-layout>
-            </v-container>
-          </v-tab-item>
-
+            
           <v-tab-item
           :key="Status">
             <v-container>
@@ -164,7 +123,7 @@
                 <v-flex xs10>
                   <v-card>
                     <v-card-title>
-                      <span>STATUS</span><br>
+                      <span class="font-weight-black px-2 pb-1">STATUS</span><br>
                     </v-card-title>
                     
                     <form class="px-4 pb-4" ref="form">
@@ -239,7 +198,8 @@ export default {
     S_output: [],
     json_output : "{}",
     status_output: "{}",
-    connectedAlert: false
+    connectedAlert: false,
+    switch1: "true", 
 
   }),
 
@@ -304,6 +264,15 @@ export default {
       return JSON.stringify(JSON.parse(value), null, 2);
     }
     
+  },
+  computed :{
+    switchbox : function(){
+      if(this.switch1){
+        return "Streaming"
+      }else{
+        return "Batch"
+      }
+    }
   },
   validate () {
       if (this.$refs.form.validate()) {
