@@ -38,14 +38,16 @@
                       <v-layout row>
                         
                         <v-flex  class="px-3" xs4>
-                             <v-btn color="info" @click="openWS">Connect</v-btn>
+                             <v-btn v-if = this.switch1 color="info" @click="ConnectAndStart">Connect</v-btn>
                         </v-flex>
 
                         <v-flex   xs5>
                            <v-switch
                               v-model="switch1"
                               :label = "`${switchbox.toString()}`"
-                              class="font-weight-black"                            >
+                              class="font-weight-black"
+                              :disabled = this.disabled
+                              @change="switchChange">
                           </v-switch>
                           <div>
                             <v-alert
@@ -67,7 +69,7 @@
                           </div>
                         </v-flex>
                       </v-layout>
-                      <form class="px-4 pb-4">
+                      <form ref= "form" class="px-4 pb-4">
                         <v-text-field
                           v-model="MessageID"
                           :error-messages="nameErrors"
@@ -181,6 +183,8 @@
 
 <script>
 import axios from "axios"
+import { log } from 'util';
+import { truncate } from 'fs';
 
 export default {
   name: 'App',
@@ -200,6 +204,7 @@ export default {
     status_output: "{}",
     connectedAlert: false,
     switch1: "true", 
+    disabled: false,
 
   }),
 
@@ -211,7 +216,7 @@ export default {
       sendMessage(){
         var strID = this.MessageID
         var mess = this.value
-        const Url = "http://127.0.0.1:4567/engine/startStream"
+        const Url = "http://127.0.0.1:4567/engine/message"
 
         axios.post(Url,{key: strID, value: mess})
           .then(response => {
@@ -237,14 +242,23 @@ export default {
         this.status_output = JSON.stringify("{e : error.response.data}")
         })
       },
+      ConnectAndStart(){        
+        var Url = "http://127.0.0.1:4567/engine/start"
+        axios.put(Url, {mode:this.switchbox})
+        .then(response => {
+        })
+        this.disabled = true
+        this.openWS()
+      },
 
       clear(){
-
+        this.$refs.form.reset()
       },
       submit(){
 
       },
       openWS(){
+      
         this.$options.sockets.onmessage = (response) => {
           this.S_output.push(JSON.parse(response.data))
           this.json_output = JSON.stringify(this.S_output)
@@ -255,9 +269,21 @@ export default {
           this.connectedAlert = false
           this.closedAlert = true
         }
+        
         this.$connect()
-          this.connectedAlert = true
-        }
+        this.connectedAlert = true
+        },
+      switchChange(){
+        if(this.switch1){
+        console.log("opening WS connection");
+        this.openWS()
+        return
+      }else{
+        console.log("closing WS connection");
+        this.$disconnect()
+        return
+      }
+      }
   },
    filters: {
     pretty: function(value) {
