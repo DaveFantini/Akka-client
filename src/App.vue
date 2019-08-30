@@ -37,39 +37,33 @@
                       </v-card-title>
                       <v-layout row>
                         
-                        <v-flex  class="px-3" xs4>
-                             <v-btn v-if = this.switch1 color="info" @click="ConnectAndStart">Connect</v-btn>
+                        <v-flex  class="px-4" xs3>
+                           <v-radio-group v-model="radioGroupEngine" :mandatory="true" v-on:change="switchMode">
+                            <v-radio
+                              label="Streaming"
+                              value= "Streaming"
+                            ></v-radio>
+                             <v-radio 
+                              label="Batch"
+                              value = "Batch"
+                              class="pt-3"
+                            ></v-radio>
+                          </v-radio-group>
                         </v-flex>
 
-                        <v-flex   xs5>
-                           <v-switch
-                              v-model="switch1"
-                              :label = "`${switchbox.toString()}`"
-                              class="font-weight-black"
-                              :disabled = this.disabled
-                              @change="switchChange">
-                          </v-switch>
-                          <div>
-                            <v-alert
-                              :value="connectedAlert"
-                              dismissible
-                              type="success"
-                              icon="check_circle"
-                              outline
-                            >
-                            Connected succesfully
-                            </v-alert>
-                            <v-alert
-                              v-model="closedAlert"
-                              dismissible
-                              type="warning"
-                            >
-                              Connection closed
-                            </v-alert>
-                          </div>
+                        <v-flex class="pt-2" xs2>
+                          <v-btn v-if = "this.radioGroupEngine=== 'Batch'" color="info" @click="RequestBatch">Batch</v-btn>
+                        </v-flex>
+                        <v-flex xs3>
+                             <v-text-field v-if = "this.radioGroupEngine=== 'Batch'"
+                                v-model="BatchField"
+                                label="Batch size"
+                                outlined
+                                :clearable = true
+                        ></v-text-field>
                         </v-flex>
                       </v-layout>
-                      <form ref= "form" class="px-4 pb-4">
+                      <form ref= "formMessage" class="px-4 pb-4">
                         <v-text-field
                           v-model="MessageID"
                           :error-messages="nameErrors"
@@ -128,7 +122,7 @@
                       <span class="font-weight-black px-2 pb-1">STATUS</span><br>
                     </v-card-title>
                     
-                    <form class="px-4 pb-4" ref="form">
+                    <form class="px-4 pb-4">
                        <v-select
                         v-model="MessageIDstatus"
                         :items="processors"
@@ -203,8 +197,7 @@ export default {
     json_output : "{}",
     status_output: "{}",
     connectedAlert: false,
-    switch1: "true", 
-    disabled: false,
+    radioGroupEngine: "Batch",
 
   }),
 
@@ -242,17 +235,22 @@ export default {
         this.status_output = JSON.stringify("{e : error.response.data}")
         })
       },
-      ConnectAndStart(){        
-        var Url = "http://127.0.0.1:4567/engine/start"
-        axios.put(Url, {mode:this.switchbox})
+      RequestBatch(){
+        var Url = "http://127.0.0.1:4567/engine/messages"
+        axios.get(Url, {batchSize:parseInt(this.BatchField)})
         .then(response => {
+          this.status_output = JSON.stringify(response.data)
         })
-        this.disabled = true
-        this.openWS()
+        
       },
 
-      clear(){
-        this.$refs.form.reset()
+      clear(){        
+        this.$refs.formMessage.reset()
+      },
+      reset(){
+        
+        this.$refs.formStatus.reset()
+
       },
       submit(){
 
@@ -266,15 +264,15 @@ export default {
         }
 
         this.$options.sockets.onclose = () => {
-          this.connectedAlert = false
-          this.closedAlert = true
+          // this.connectedAlert = false
+          // this.closedAlert = true
         }
         
         this.$connect()
-        this.connectedAlert = true
+        // this.connectedAlert = true
         },
-      switchChange(){
-        if(this.switch1){
+      switchMode(){
+        if(this.radioGroupEngine == "Streaming"){
         console.log("opening WS connection");
         this.openWS()
         return
@@ -291,26 +289,6 @@ export default {
     }
     
   },
-  computed :{
-    switchbox : function(){
-      if(this.switch1){
-        return "Streaming"
-      }else{
-        return "Batch"
-      }
-    }
-  },
-  validate () {
-      if (this.$refs.form.validate()) {
-          this.snackbar = true
-        }
-      },
-      reset () {
-        this.$refs.form.reset()
-      },
-      resetValidation () {
-        this.$refs.form.resetValidation()
-      }
-  }
-
+  
+}
 </script>
